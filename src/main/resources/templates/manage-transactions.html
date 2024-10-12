@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Manage Transactions</title>
+    <style>
+        .container {
+            margin-top: 50px;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            margin-top: 20px;
+        }
+        .dashboard-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .action-btns {
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%; /* Make the table take full width */
+        }
+        th, td {
+            white-space: nowrap; /* Prevent content from wrapping */
+        }
+        .table-container {
+            overflow-x: auto;
+            margin: 0 20px;
+            margin-top : 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Go to Dashboard Button -->
+    <div class="btn-container">
+        <button onclick="location.href='dashboard.html'" class="btn btn-secondary dashboard-btn">Go to Dashboard
+        </button>
+    </div>
+
+    <h2 class="text-center mb-4">Manage Transactions</h2>
+
+    <!-- Form to search member and book -->
+    <div class="form-container">
+        <div class="form-group">
+            <label for="member-id">Member ID</label>
+            <input type="text" id="member-id" class="form-control" placeholder="Enter Member ID">
+        </div>
+
+        <div class="form-group">
+            <label for="book-id">Book ID</label>
+            <input type="text" id="book-id" class="form-control" placeholder="Enter Book ID">
+        </div>
+
+        <!-- Transaction Type Buttons -->
+        <div class="action-btns text-center">
+            <button onclick="getTransactions()" class="btn btn-primary mr-2">View Transaction</button>
+            <button onclick="issueBook()" class="btn btn-primary mr-2">Issue Book</button>
+            <button onclick="returnBook()" class="btn btn-success mr-2">Return Book</button>
+            <button onclick="renewBook()" class="btn btn-warning">Renew Book</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-bordered table-striped" id="transactions-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Book ID</th>
+            <th>Book Title</th>
+            <th>Author</th>
+            <th>Member ID</th>
+            <th>Member Name</th>
+            <th>Phone</th>
+            <th>Issued Date</th>
+            <th>Due Date</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Rows will be dynamically populated here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+    let transactions = [];
+
+   function getTransactions() {
+      const bookId = document.getElementById('book-id').value.trim();
+      const memberId = document.getElementById('member-id').value.trim();
+      let url = '/transactions';  // Base URL for transaction API
+
+      // Construct the query params based on user input
+      if (bookId || memberId) {
+      // Start by adding a question mark to the URL
+      url += '?';
+
+      // Check if bookId is provided
+      if (bookId) {
+          url += `bookId=${bookId}`; // Add bookId to the URL
+      }
+
+      // Check if both bookId and memberId are provided
+      if (bookId && memberId) {
+          url += '&'; // If both are provided, add '&' to separate them
+      }
+
+      // Check if memberId is provided
+      if (memberId) {
+          url += `memberId=${memberId}`; // Add memberId to the URL
+      }
+  }
+
+
+      console.log(url); // For debugging
+
+      fetch(url)
+          .then(response => response.json())
+          .then(data => {
+              // Assign the fetched transactions to the global transactions array
+              populateTable(data);
+          })
+          .catch(error => console.error('Error fetching transactions:', error));
+  }
+
+
+
+    // Function to populate the table with transactions
+      function populateTable(transactions) {
+          const tbody = document.querySelector('#transactions-table tbody');
+          tbody.innerHTML = ''; // Clear existing rows
+
+          if (transactions.length === 0) {
+              // If no transactions found, display a message
+              tbody.innerHTML = '<tr><td colspan="10" class="text-center">No transactions found.</td></tr>';
+              return;
+          }
+
+          transactions.forEach(transaction => {
+              const row = `<tr>
+                  <td>${transaction.transactionId}</td>
+                  <td>${transaction.bookId}</td>
+                  <td>${transaction.bookTitle}</td>
+                  <td>${transaction.author}</td>
+                  <td>${transaction.memberId}</td>
+                  <td>${transaction.memberName}</td>
+                  <td>${transaction.phone}</td>
+                  <td>${transaction.issueDate}</td>
+                  <td>${transaction.dueDate}</td>
+                  <td>${transaction.status}</td>
+              </tr>`;
+              tbody.innerHTML += row;
+          });
+      }
+
+
+    function issueBook() {
+        const memberId = document.getElementById('member-id').value;
+        const bookId = document.getElementById('book-id').value;
+
+        if (memberId && bookId) {
+            const issueData = {
+                memberId: memberId,
+                bookId: bookId
+            };
+
+            // Send POST request to the backend
+            fetch(`/transactions?memberId=${memberId}&bookId=${bookId}`, {
+                method: 'POST',
+
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Book with ID: ${bookId} has been issued to member with ID: ${memberId}`);
+                } else {
+                    alert('Failed to issue the book. Please try again.');
+                }
+            })
+            .catch(error => console.error('Error issuing book:', error));
+        } else {
+            alert('Please enter both Member ID and Book ID.');
+        }
+    }
+
+    function returnBook() {
+        const memberId = document.getElementById('member-id').value;
+        const bookId = document.getElementById('book-id').value;
+
+        // Send POST request to the backend
+            fetch(`/transactions/return?memberId=${memberId}&bookId=${bookId}`, {
+                method: 'PUT',
+
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Returning book with ID: ${bookId} for member with ID: ${memberId}`);
+                } else {
+                    alert('Failed to return the book. Please try again.');
+                }
+            })
+            .catch(error => console.error('Error renewing book:', error));
+    }
+
+    function renewBook() {
+        const memberId = document.getElementById('member-id').value;
+        const bookId = document.getElementById('book-id').value;
+
+        // Send POST request to the backend
+            fetch(`/transactions/renew?memberId=${memberId}&bookId=${bookId}`, {
+                method: 'PUT',
+
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Renewing book with ID: ${bookId} for member with ID: ${memberId}`);
+                } else {
+                    alert('Failed to renew the book. Please try again.');
+                }
+            })
+            .catch(error => console.error('Error renewing book:', error));
+
+    }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

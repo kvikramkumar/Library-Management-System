@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Book</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+        background-color: #f8f9fa; /* Light background color */
+    }
+    .form-container {
+        max-width: 500px; /* Max width for the form */
+        margin: 100px auto; /* Center the form vertically */
+        padding: 20px;
+        background-color: white; /* White background for the form */
+        border-radius: 8px; /* Rounded corners */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+  </style>
+</head>
+<body>
+<div class="form-container">
+  <h2 class="text-center">Book Details</h2>
+  <form id="book-form">
+    <div class="form-group">
+      <label for="title">Book Title:</label>
+      <input type="text" class="form-control" id="title" required>
+    </div>
+    <div class="form-group">
+      <label for="author">Author:</label>
+      <input type="text" class="form-control" id="author" required>
+    </div>
+    <div class="form-group">
+      <label for="publisher">Publisher:</label>
+      <input type="text" class="form-control" id="publisher" required>
+    </div>
+    <div class="form-group">
+      <label for="isbn">ISBN:</label>
+      <input type="text" class="form-control" id="isbn" required>
+    </div>
+    <div class="form-group">
+      <label for="edition">Edition:</label>
+      <input type="text" class="form-control" id="edition" required>
+    </div>
+    <div class="form-group">
+      <label for="quantity">Quantity:</label>
+      <input type="number" class="form-control" id="quantity" required>
+    </div>
+    <div class="form-group">
+      <label for="price">Price:</label>
+      <input type="number" class="form-control" id="price" required>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-block">Add Book</button>
+  </form>
+</div>
+<script>
+  document.getElementById('book-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    const title = document.getElementById('title').value;
+    const author = document.getElementById('author').value;
+    const publisher = document.getElementById('publisher').value;
+    const isbn = document.getElementById('isbn').value;
+    const edition = document.getElementById('edition').value;
+    const quantity = document.getElementById('quantity').value;
+    const price =  document.getElementById('price').value;
+
+
+
+    // Create JSON object
+    const data = {
+      title : title,
+      author : author,
+      publisher : publisher,
+      isbn : isbn,
+      edition : edition,
+      quantity : quantity,
+      price : price
+    };
+
+    // Log the JSON data to console (simulating sending data)
+    console.log(JSON.stringify(data));
+
+    // Send data as JSON using fetch
+    fetch('/books', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data) // Send the signup form data
+    })
+    .then(response => {
+      if (response.ok) {
+        // If signup is successful, redirect to login page
+        window.location.href = '/manage-books.html';
+      } else {
+        // Handle errors (e.g., bad request, server issues)
+        return response.json().then(data => {
+          console.error('Error:', data);
+        });
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  });
+</script>
+</body>
+</html>

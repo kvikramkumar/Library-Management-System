@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light background color */
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .btn-group {
+            margin-top: 100px; /* Spacing from the top */
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <button class="btn btn-danger logout-btn" id="logout-btn">Logout</button>
+    <h2 class="text-center">Admin Dashboard</h2>
+    <div class="btn-group btn-group-lg d-flex justify-content-center" role="group">
+        <a href="manage-books.html" class="btn btn-secondary mx-2">Manage Books</a>
+        <a href="manage-members.html" class="btn btn-secondary mx-2">Manage Members</a>
+        <a href="manage-transactions.html" class="btn btn-secondary mx-2">Manage Transactions</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('logout-btn').addEventListener('click', function() {
+    fetch('/logout', {
+        method: 'POST',  // Spring Security expects POST for logout
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (response.ok) {
+            // Redirect to the login page after a successful logout
+            window.location.href = '/login.html';  // Point to your actual login page
+        } else {
+            alert('Logout failed.');
+        }
+    }).catch(error => console.error('Error logging out:', error));
+});
+
+</script>
+</body>
+</html>

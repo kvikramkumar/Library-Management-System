@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <title>Manage Members</title>
+  <style>
+    /* Custom styles */
+    .container {
+        margin-top: 20px;
+    }
+    .btn-container {
+        display: flex;
+        justify-content: flex-end; /* Align buttons to the right */
+    }
+    table {
+            width: 100%; /* Make the table take full width */
+     }
+     th, td {
+            white-space: nowrap; /* Prevent content from wrapping */
+      }
+     .table-container {
+            overflow-x: auto;
+            margin: 0 20px;
+     }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2 class="text-center">Manage Members</h2>
+
+  <!-- Button Container -->
+  <div class="btn-container mb-3">
+    <button onclick="location.href='add-member.html'" class="btn btn-primary mr-2">Add Member</button>
+    <button onclick="location.href='dashboard.html'" class="btn btn-secondary">Dashboard</button>
+  </div>
+
+  <!-- Search Field -->
+  <!-- Search Field -->
+  <div class="input-group mb-3">
+    <!-- Dropdown for search options -->
+    <select id="searchCriteria" class="custom-select mr-2">
+      <option value="memberId">Search By ID</option>
+      <option value="memberName">Search By Name</option>
+      <option value="email">Search By Email</option>
+      <option value="phone">Search By Phone</option>
+    </select>
+
+    <input type="text" id="search" class="form-control" placeholder="Enter your search term">
+    <div class="input-group-append">
+      <button onclick="searchMembers()" class="btn btn-secondary">Search</button>
+    </div>
+  </div>
+</div>
+
+<div class="table-container">
+  <table class="table table-bordered table-striped" id="members-table">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Address</th>
+      <th>Membership Date</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Rows will be dynamically populated here -->
+    </tbody>
+  </table>
+</div>
+<!-- Update Member Modal -->
+<div class="modal fade" id="updateMemberModal" tabindex="-1" role="dialog" aria-labelledby="updateMemberModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateMemberModalLabel">Update Member</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="updateMemberForm">
+          <input type="hidden" id="updateMemberId">
+          <div class="form-group">
+            <label for="updateMemberName">Name</label>
+            <input type="text" class="form-control" id="updateMemberName" required>
+          </div>
+          <div class="form-group">
+            <label for="updateEmail">Email</label>
+            <input type="email" class="form-control" id="updateEmail" required>
+          </div>
+          <div class="form-group">
+            <label for="updatePhone">Phone</label>
+            <input type="text" class="form-control" id="updatePhone" required>
+          </div>
+          <div class="form-group">
+            <label for="updateAddress">Address</label>
+            <input type="text" class="form-control" id="updateAddress" required>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="updateMember()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let members = [];
+
+      // Function to fetch member data from the backend
+      function searchMembers() {
+          const query = document.getElementById('search').value.trim().toLowerCase();
+          const criteria = document.getElementById('searchCriteria').value;
+          let url;
+
+          if (query) {
+              // Construct the search URL based on the selected criteria
+              url = `/members?${criteria}=${encodeURIComponent(query)}`;
+          } else {
+              url = '/members'; // Fetch all members if the query is empty
+          }
+
+          console.log(url); // For debugging
+
+          fetch(url)
+              .then(response => response.json())
+              .then(data => {
+                  members = data; // Assign the fetched members to the global members array
+                  populateTable(data);
+              })
+              .catch(error => console.error('Error fetching members:', error));
+      }
+      // Function to open the Update Member Modal and fill in the current member details
+function openUpdateModal(memberId) {
+    // Find the member by its ID
+    const member = members.find(m => m.memberId === memberId);
+
+    if (member) {
+        // Fill the modal form with the member data
+        document.getElementById('updateMemberId').value = member.memberId;
+        document.getElementById('updateMemberName').value = member.memberName;
+        document.getElementById('updateEmail').value = member.email;
+        document.getElementById('updatePhone').value = member.phone;
+        document.getElementById('updateAddress').value = member.address;
+
+        // Show the modal
+        $('#updateMemberModal').modal('show');
+    }
+}
+
+// Function to handle the update of the member
+function updateMember() {
+    // Get the updated values from the form
+    const updatedMember = {
+        memberId: Number(document.getElementById('updateMemberId').value),
+        memberName: document.getElementById('updateMemberName').value,
+        email: document.getElementById('updateEmail').value,
+        phone: document.getElementById('updatePhone').value,
+        address: document.getElementById('updateAddress').value,
+    };
+
+    // Send the updated data to the backend (you would use the correct API endpoint here)
+    fetch(`/members`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedMember)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert(`Member with ID: ${updatedMember.memberId} has been updated.`);
+            $('#updateMemberModal').modal('hide'); // Hide the modal
+            searchMembers(); // Refresh the member list
+        } else {
+            alert('Failed to update the member.');
+        }
+    })
+    .catch(error => console.error('Error updating member:', error));
+}
+
+
+      // Function to populate the table with members
+      function populateTable(members) {
+          const tbody = document.querySelector('#members-table tbody');
+          tbody.innerHTML = ''; // Clear existing rows
+
+          if (members.length === 0) {
+              // If no members found, display a message
+              tbody.innerHTML = '<tr><td colspan="6" class="text-center">No Members found.</td></tr>';
+              return;
+          }
+
+          members.forEach(member => {
+              const row = `<tr>
+                  <td>${member.memberId}</td>
+                  <td>${member.memberName}</td>
+                  <td>${member.email}</td>
+                  <td>${member.phone}</td>
+                  <td>${member.address}</td>
+                  <td>${member.memberShipDate}</td>
+
+                  <td>
+                      <button onclick="openUpdateModal(${member.memberId})" class="btn btn-warning btn-sm">Update</button>
+                      <button onclick="removeMember(${member.memberId})" class="btn btn-danger btn-sm">Remove</button>
+                  </td>
+              </tr>`;
+              tbody.innerHTML += row;
+          });
+      }
+      
+
+      function removeMember(memberId) {
+        if (confirm('Are you sure you want to delete this member?')) {
+            fetch(`/members/${memberId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Member with ID: ${memberId} has been deleted.`);
+                    searchMembers(); // Refresh the list of members
+                } else {
+                    alert('Failed to delete the member.');
+                }
+            })
+            .catch(error => console.error('Error deleting member:', error));
+        }
+    }
+
+  document.addEventListener('DOMContentLoaded', searchMembers);
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

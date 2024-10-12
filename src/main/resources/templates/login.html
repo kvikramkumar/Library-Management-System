@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light background color */
+        }
+        .login-container {
+            max-width: 400px; /* Max width for the form */
+            margin: 100px auto; /* Center the form vertically */
+            padding: 20px;
+            background-color: white; /* White background for the form */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2 class="text-center">Admin Login</h2>
+    <form id="login-form">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" required>
+        </div>
+        <div id="error-message" class="error"></div>
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Login</button>
+            <a href="signup.html" class="btn btn-link">Sign Up</a>
+        </div>
+    </form>
+</div>
+<script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent default form submission
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorMessage = document.getElementById('error-message');
+
+      // Clear previous error message
+      errorMessage.textContent = '';
+
+      // Check if both fields are filled (this is redundant since they are marked as required in HTML)
+      if (username === "" || password === "") {
+        errorMessage.textContent = 'Username and Password are required';
+        return;
+      }
+
+      // Create JSON object
+      const data = {
+        username: username,
+        password: password
+      };
+
+      // Send data as JSON (Example of sending with fetch)
+      fetch('/login', { // Replace with your actual login API endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data) // Send the login form data
+      })
+      .then(response => {
+        if (response.ok) {
+          // Handle success (you can redirect or show a message)
+          console.log('Login successful');
+          window.location.href = '/dashboard.html';
+        } else {
+          // Handle errors (e.g., invalid credentials)
+          return response.json().then(data => {
+            errorMessage.textContent = 'Invalid username or password';
+            console.error('Error:', data);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    });
+</script>
+</body>
+</html>
